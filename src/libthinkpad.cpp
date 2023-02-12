@@ -366,33 +366,50 @@ namespace ThinkPad {
                     continue;
                 }
 
-                /*
-                 * The /sys/devices/platform/dock.2 path is the main ThinkPad
-                 * dock device file on XX20 series ThinkPads, other ThinkPads
-                 * have not been tested as I don't have the hardware to test.
-                 */
-                if (strstr(udev_device_get_syspath(device), IBM_DOCK) != NULL) {
+                if (strcmp(acpiClass->udev_style, "new") == 0) {
+                    if (strcmp(udev_device_get_syspath(device), acpiClass->udev_syspath) == 0) {
 
-                    /*
-                     * One could argue that I can use this instead of reading the
-                     * file manually but this just plainly does not work, it returns
-                     * what it feels like of returning
-                     */
-                    // const char *docked = udev_device_get_sysattr_value(device, "docked");
+                        /* Wait for the dock to appear */
+                        sleep(1);
 
-                    Hardware::Dock dock;
+                        const char *action = udev_device_get_action(device);
 
-                    if (!dock.probe()) {
-                        fprintf(stderr, "fixme: udev event fired on non-sane dock\n");
-                        udev_device_unref(device);
-                        continue;
+                        if (strcmp(action, "add") == 0) {
+                            event = ACPIEvent::DOCKED;
+                        } else if (strcmp(action, "remove") == 0) {
+                            event = ACPIEvent::UNDOCKED;
+                        }
+
                     }
+                } else if (strcmp(acpiClass->udev_style, "old") == 0) {
+                    /*
+                     * The /sys/devices/platform/dock.2 path is the main ThinkPad
+                     * dock device file on XX20 series ThinkPads, other ThinkPads
+                     * have not been tested as I don't have the hardware to test.
+                     */
+                    if (strstr(udev_device_get_syspath(device), IBM_DOCK) != NULL) {
 
-                    /* Wait for the dock to appear */
-                    sleep(1);
+                        /*
+                         * One could argue that I can use this instead of reading the
+                         * file manually but this just plainly does not work, it returns
+                         * what it feels like of returning
+                         */
+                        // const char *docked = udev_device_get_sysattr_value(device, "docked");
 
-                    event = dock.isDocked() ? ACPIEvent::DOCKED : ACPIEvent::UNDOCKED;
+                        Hardware::Dock dock;
 
+                        if (!dock.probe()) {
+                            fprintf(stderr, "fixme: udev event fired on non-sane dock\n");
+                            udev_device_unref(device);
+                            continue;
+                        }
+
+                        /* Wait for the dock to appear */
+                        sleep(1);
+
+                        event = dock.isDocked() ? ACPIEvent::DOCKED : ACPIEvent::UNDOCKED;
+
+                    }
                 }
 
                 /*

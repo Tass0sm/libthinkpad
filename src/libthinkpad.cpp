@@ -329,8 +329,11 @@ namespace ThinkPad {
         struct udev* udev = udev_new();
         struct udev_monitor *monitor = udev_monitor_new_from_netlink(udev, "udev");
 
-        udev_monitor_filter_add_match_subsystem_devtype(monitor, "platform", NULL);
-        udev_monitor_filter_add_match_subsystem_devtype(monitor, "machinecheck", NULL);
+        if (strcmp(acpiClass->udev_style, "old") == 0) {
+            udev_monitor_filter_add_match_subsystem_devtype(monitor, "platform", NULL);
+            udev_monitor_filter_add_match_subsystem_devtype(monitor, "machinecheck", NULL);
+        }
+
         udev_monitor_enable_receiving(monitor);
 
         int fd = udev_monitor_get_fd(monitor);

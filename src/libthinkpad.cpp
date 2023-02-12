@@ -478,6 +478,12 @@ namespace ThinkPad {
 
     }
 
+    void PowerManagement::ACPI::applyConfig(Utilities::Ini::Ini *config) {
+        Utilities::Ini::IniSection* udev = config->getSection("udev");
+        udev_syspath = udev->getString("syspath", IBM_DOCK);
+        udev_style = udev->getString("style", "old");
+    }
+
     void PowerManagement::ACPI::addEventHandler(PowerManagement::ACPIEventHandler *handler) {
         this->ACPIhandlers->push_back(handler);
     }
@@ -775,6 +781,17 @@ namespace ThinkPad {
         }
 
         return nullptr;
+    }
+
+    const char *Utilities::Ini::IniSection::getString(const char *key, const char *fallback) const
+    {
+        for (IniKeypair* keypair : *keypairs) {
+            if (strcmp(keypair->key, key) == 0) {
+                return keypair->value;
+            }
+        }
+
+        return fallback;
     }
 
     const void Utilities::Ini::IniSection::setString(const char *key, const char *value)

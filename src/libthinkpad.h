@@ -296,6 +296,13 @@ namespace ThinkPad {
                 const char *getString(const char *key) const;
 
                 /**
+                 * @brief get a string from the section or a fallback value
+                 * @param key the key of the string
+                 * @return the string or the fallback
+                 */
+                const char *getString(const char *key, const char* fallback) const;
+
+                /**
                  * @brief set a string in the section with the key
                  * @param key the key to set
                  * @param value the value to set
@@ -625,10 +632,20 @@ namespace ThinkPad {
 
             bool udev_running = true;
 
+            const char *udev_style;
+            const char *udev_syspath;
+
         public:
 
             ACPI();
             ~ACPI();
+
+            /**
+             * @brief Set private variables according to config.
+             *
+             * @param config
+             */
+            void applyConfig(Utilities::Ini::Ini *config);
 
             /**
              * @brief Set a custom event handler for ACPI events
